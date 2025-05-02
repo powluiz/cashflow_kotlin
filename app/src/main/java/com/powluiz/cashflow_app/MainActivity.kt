@@ -1,5 +1,6 @@
 package com.powluiz.cashflow_app
 
+import android.app.DatePickerDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -14,6 +15,7 @@ import com.powluiz.cashflow_app.database.DatabaseHelper
 import com.powluiz.cashflow_app.database.TransactionDetail
 import com.powluiz.cashflow_app.database.TransactionType
 import com.powluiz.cashflow_app.databinding.ActivityMainBinding
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +32,27 @@ class MainActivity : AppCompatActivity() {
         dbHelper = DatabaseHelper(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.editTextDate.apply {
+            isFocusable = false
+            isClickable = true
+            setOnClickListener {
+                val calendar = Calendar.getInstance()
+                val year = calendar.get(Calendar.YEAR)
+                val month = calendar.get(Calendar.MONTH)
+                val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+                val datePickerDialog = DatePickerDialog(
+                    this@MainActivity,
+                    { _, selectedYear, selectedMonth, selectedDay ->
+                        val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+                        setText(formattedDate)
+                    },
+                    year, month, day
+                )
+                datePickerDialog.show()
+            }
+        }
 
         binding.buttonSubmit.setOnClickListener { onClickSubmit(it) }
         binding.buttonSeeHistory.setOnClickListener { onClickSeeHistory() }
