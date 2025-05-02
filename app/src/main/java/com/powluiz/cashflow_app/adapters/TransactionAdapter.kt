@@ -1,4 +1,4 @@
-package com.powluiz.cashflow_app.ui
+package com.powluiz.cashflow_app.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -43,7 +43,6 @@ class TransactionAdapter(
         val formattedValue = formatter.format(currentTransaction.value)
         holder.textViewValue.text = formattedValue
 
-        // Define a cor do valor com base no tipo de transação
         if (currentTransaction.type == TransactionType.INCOME) {
             holder.textViewValue.setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark))
         } else {
@@ -56,17 +55,4 @@ class TransactionAdapter(
     }
 
     override fun getItemCount() = transactions.size
-
-    fun updateTransactions(newTransactions: List<CashTransaction>) {
-        transactions.clear()
-        transactions.addAll(newTransactions)
-        notifyDataSetChanged()
-    }
-
-    fun removeTransaction(position: Int) {
-        if (position in 0 until transactions.size) {
-            transactions.removeAt(position)
-            notifyItemRemoved(position)
-        }
-    }
 }

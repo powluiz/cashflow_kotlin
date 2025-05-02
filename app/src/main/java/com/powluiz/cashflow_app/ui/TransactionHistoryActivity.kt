@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.powluiz.cashflow_app.adapters.TransactionAdapter
 import com.powluiz.cashflow_app.database.CashTransaction
 import com.powluiz.cashflow_app.database.DatabaseHelper
 import com.powluiz.cashflow_app.databinding.ActivityTransactionHistoryBinding

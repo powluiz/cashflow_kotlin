@@ -142,9 +142,10 @@ class MainActivity : AppCompatActivity() {
         val formattedExpense = currencyFormatter.format(totalExpenses)
         val formattedBalance = currencyFormatter.format(balance)
 
-        val balanceColor = if (balance >= 0) android.graphics.Color.GREEN else android.graphics.Color.RED
-        val dialogView = layoutInflater.inflate(R.layout.dialog_cash_balance, null)
+        val color = if (balance >= 0) android.R.color.holo_green_dark else android.R.color.holo_red_dark
+        val balanceColor = androidx.core.content.ContextCompat.getColor(this, color)
 
+        val dialogView = layoutInflater.inflate(R.layout.dialog_cash_balance, null)
         val tvIncome = dialogView.findViewById<android.widget.TextView>(R.id.textViewTotalIncome)
         val tvExpense = dialogView.findViewById<android.widget.TextView>(R.id.textViewTotalExpense)
         val tvBalance = dialogView.findViewById<android.widget.TextView>(R.id.textViewBalance)
