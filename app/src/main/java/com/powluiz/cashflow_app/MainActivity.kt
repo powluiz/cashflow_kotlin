@@ -1,20 +1,18 @@
 package com.powluiz.cashflow_app
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.RadioGroup
-import android.widget.Spinner
 import com.google.android.material.snackbar.Snackbar
 import com.powluiz.cashflow_app.database.CashTransaction
 import com.powluiz.cashflow_app.database.DatabaseHelper
 import com.powluiz.cashflow_app.database.TransactionDetail
 import com.powluiz.cashflow_app.database.TransactionType
 import com.powluiz.cashflow_app.databinding.ActivityMainBinding
+import com.powluiz.cashflow_app.ui.TransactionHistoryActivity
 import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
@@ -66,7 +64,6 @@ class MainActivity : AppCompatActivity() {
             updateSpinnerOptions(details)
         }
 
-        // set expense as initial value
         binding.radioOptionIncome.isChecked = true
         updateSpinnerOptions(incomeOptions)
     }
@@ -88,12 +85,7 @@ class MainActivity : AppCompatActivity() {
                 valueText.toFloatOrNull() != null &&
                 dateText.isNotBlank()
     }
-
-
-
-
-
-    /* onClick listeners */
+    
     private fun onClickSubmit(view: View) {
         if (!areFieldsValid()) {
             Snackbar.make(view, "Preencha todos os campos corretamente!", Snackbar.LENGTH_LONG).show()
@@ -135,7 +127,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onClickSeeHistory() {}
-    private fun onClickSeeCash() {}
+    private fun onClickSeeHistory() {
+        val intent = Intent(this, TransactionHistoryActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun onClickSeeCash() {
+        val totalIncomes = dbHelper.getTotalCashIncome()
+        val totalExpenses = dbHelper.getTotalCashExpense()
+        val balance = dbHelper.getBalance()
+
+        val currencyFormatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("pt", "BR"))
+        val formattedIncome = currencyFormatter.format(totalIncomes)
+        val formattedExpense = currencyFormatter.format(totalExpenses)
+        val formattedBalance = currencyFormatter.format(balance)
+
+        val balanceColor = if (balance >= 0) android.graphics.Color.GREEN else android.graphics.Color.RED
+        val dialogView = layoutInflater.inflate(R.layout.dialog_cash_balance, null)
+
+        val tvIncome = dialogView.findViewById<android.widget.TextView>(R.id.textViewTotalIncome)
+        val tvExpense = dialogView.findViewById<android.widget.TextView>(R.id.textViewTotalExpense)
+        val tvBalance = dialogView.findViewById<android.widget.TextView>(R.id.textViewBalance)
+
+        tvIncome.text = "Total de Créditos: $formattedIncome"
+        tvExpense.text = "Total de Débitos: $formattedExpense"
+        tvBalance.text = "Saldo: $formattedBalance"
+
+        tvBalance.setTextColor(balanceColor)
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Resumo Financeiro")
+            .setView(dialogView)
+            .setPositiveButton("Voltar") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
 
 }

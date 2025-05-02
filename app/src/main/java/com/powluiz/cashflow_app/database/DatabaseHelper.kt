@@ -63,7 +63,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val cursor = db.query(
             KEY_TABLE_TRANSACTION,
             arrayOf(KEY_COLUMN_ID, KEY_COLUMN_TYPE, KEY_COLUMN_DETAIL, KEY_COLUMN_VALUE, KEY_COLUMN_DATE),
-            null,  // (SELECT * FROM table)
+            null,
             null,
             null,
             null,
@@ -77,13 +77,65 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 val detail = TransactionDetail.valueOf(cursor.getString(cursor.getColumnIndex(KEY_COLUMN_DETAIL)))
                 val value = cursor.getDouble(cursor.getColumnIndex(KEY_COLUMN_VALUE))
                 val date = cursor.getString(cursor.getColumnIndex(KEY_COLUMN_DATE))
-
                 transactions.add(CashTransaction(id, value, type, detail, date))
             } while (cursor.moveToNext())
             cursor.close()
         }
 
         return transactions
+    }
+
+    fun getTotalCashIncome(): Double {
+        val db = readableDatabase
+        var totalIncome = 0.0
+
+        val columns = arrayOf("SUM($KEY_COLUMN_VALUE)")
+        val selection = "$KEY_COLUMN_TYPE = ?"
+        val selectionArgs = arrayOf(TransactionType.INCOME.name)
+
+        val cursor = db.query(
+            KEY_TABLE_TRANSACTION,
+            columns,
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            totalIncome = cursor.getDouble(0)
+        }
+        cursor.close()
+        return totalIncome
+    }
+
+    fun getTotalCashExpense(): Double {
+        val db = readableDatabase
+        var totalExpense = 0.0
+
+        val columns = arrayOf("SUM($KEY_COLUMN_VALUE)")
+        val selection = "$KEY_COLUMN_TYPE = ?"
+        val selectionArgs = arrayOf(TransactionType.EXPENSE.name)
+
+        val cursor = db.query(
+            KEY_TABLE_TRANSACTION,
+            columns,
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            totalExpense = cursor.getDouble(0)
+        }
+        cursor.close()
+        return totalExpense
+    }
+    fun getBalance(): Double {
+        return getTotalCashIncome() - getTotalCashExpense()
     }
 
 
