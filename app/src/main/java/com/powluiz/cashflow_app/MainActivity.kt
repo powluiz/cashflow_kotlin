@@ -3,54 +3,62 @@ package com.powluiz.cashflow_app
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Spinner
 import com.google.android.material.snackbar.Snackbar
+import com.powluiz.cashflow_app.database.CashTransaction
 import com.powluiz.cashflow_app.database.DatabaseHelper
+import com.powluiz.cashflow_app.database.TransactionDetail
+import com.powluiz.cashflow_app.database.TransactionType
+import com.powluiz.cashflow_app.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-
+    private lateinit var binding: ActivityMainBinding
     private lateinit var dbHelper: DatabaseHelper
 
-    // components
-    private lateinit var radioGroupPaymentType: RadioGroup
-    private lateinit var spinnerDetail: Spinner
-    private lateinit var editTextValue: EditText
-    private lateinit var editTextDate: EditText
-    private lateinit var buttonSubmit: Button
-    private lateinit var buttonSeeHistory: Button
-    private lateinit var buttonSeeCash: Button
-
-
-
+    private val incomeOptions = TransactionDetail.getDetailOptionsForType(TransactionType.INCOME)
+    private val expenseOptions = TransactionDetail.getDetailOptionsForType(TransactionType.EXPENSE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         dbHelper = DatabaseHelper(this)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        radioGroupPaymentType = findViewById(R.id.radioGroupPaymentType)
-        spinnerDetail = findViewById(R.id.spinnerDetail)
-        editTextValue = findViewById(R.id.editTextValue)
-        editTextDate = findViewById(R.id.editTextDate)
-        buttonSubmit = findViewById(R.id.buttonSubmit)
-        buttonSeeHistory = findViewById(R.id.buttonSeeHistory)
-        buttonSeeCash = findViewById(R.id.buttonSeeCash)
+        binding.buttonSubmit.setOnClickListener { onClickSubmit(it) }
+        binding.buttonSeeHistory.setOnClickListener { onClickSeeHistory() }
+        binding.buttonSeeCash.setOnClickListener { onClickSeeCash() }
+        binding.radioGroupPaymentType.setOnCheckedChangeListener { _, checkedId ->
+            val details = when (checkedId) {
+                R.id.radioOptionIncome -> incomeOptions
+                R.id.radioOptionExpense -> expenseOptions
+                else -> emptyList()
+            }
+            updateSpinnerOptions(details)
+        }
 
-        buttonSubmit.setOnClickListener { view -> onClickSubmit(view) }
-        buttonSeeHistory.setOnClickListener { onClickSeeHistory() }
-        buttonSeeCash.setOnClickListener { onClickSeeCash() }
+        // set expense as initial value
+        binding.radioOptionIncome.isChecked = true
+        updateSpinnerOptions(incomeOptions)
+    }
+
+    private fun updateSpinnerOptions(options: List<TransactionDetail>) {
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, options)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerDetail.adapter = adapter
     }
 
     private fun areFieldsValid(): Boolean {
-        val selectedRadioButtonId = radioGroupPaymentType.checkedRadioButtonId
-        val detailSelected = spinnerDetail.selectedItem
-        val valueText = editTextValue.text.toString()
-        val dateText = editTextDate.text.toString()
+        val selectedRadioButtonId = binding.radioGroupPaymentType.checkedRadioButtonId
+        val detailSelected = binding.spinnerDetail.selectedItem
+        val valueText = binding.editTextValue.text.toString()
+        val dateText = binding.editTextDate.text.toString()
 
         return selectedRadioButtonId != -1 &&
                 detailSelected.toString().isNotEmpty() &&
@@ -58,12 +66,52 @@ class MainActivity : AppCompatActivity() {
                 dateText.isNotBlank()
     }
 
+
+
+
+
+    /* onClick listeners */
     private fun onClickSubmit(view: View) {
         if (!areFieldsValid()) {
             Snackbar.make(view, "Preencha todos os campos corretamente!", Snackbar.LENGTH_LONG).show()
             return
         }
+
+        val value = binding.editTextValue.text.toString().toDouble()
+        val date = binding.editTextDate.text.toString()
+
+        val type = when (binding.radioGroupPaymentType.checkedRadioButtonId) {
+            binding.radioOptionIncome.id -> TransactionType.INCOME
+            binding.radioOptionExpense.id -> TransactionType.EXPENSE
+            else -> null
+        }
+
+        val detailLabel = binding.spinnerDetail.selectedItem.toString()
+        val detail = TransactionDetail.fromLabel(detailLabel)
+
+        if (type == null || detail == null) {
+            return
+        }
+
+        val transaction = CashTransaction(
+            id = 0,
+            value = value,
+            type = type,
+            detail = detail,
+            date = date
+        )
+
+        val transactionId = dbHelper.createTransaction(transaction)
+        if (transactionId > 0) {
+            Snackbar.make(view, "Item adicionado com sucesso!", Snackbar.LENGTH_LONG).show()
+            binding.editTextValue.text.clear()
+            binding.editTextDate.text.clear()
+            binding.spinnerDetail.setSelection(0)
+        } else {
+            Snackbar.make(view, "Erro ao adicionar o item. Por favor, tente novamente.", Snackbar.LENGTH_LONG).show()
+        }
     }
+
     private fun onClickSeeHistory() {}
     private fun onClickSeeCash() {}
 

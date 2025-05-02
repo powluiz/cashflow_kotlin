@@ -33,13 +33,13 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/radioOptionCredit"
+                android:id="@+id/radioOptionIncome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Crédito" />
 
             <RadioButton
-                android:id="@+id/radioOptionDebit"
+                android:id="@+id/radioOptionExpense"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Débito" />
